@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Kassensystem">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%234CAF50'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>💰</text></svg>">
+    <title>💰 Kassensystem</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+            color: #333;
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        
+        .app {
+            max-width: 400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .header h1 {
+            color: #4CAF50;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .time {
+            font-size: 1.1rem;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+        }
+        
+        .section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .product-btn {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 15px 10px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-height: 80px;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .product-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 10px rgba(76, 175, 80, 0.5);
+        }
+        
+        .price {
+            font-weight: bold;
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+        
+        .barcode-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 16px; /* Prevents zoom on iOS */
+            margin-bottom: 10px;
+            background: white;
+            -webkit-appearance: none;
+        }
+        
+        .barcode-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+        }
+        
+        .add-btn {
+            width: 100%;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .add-btn:active {
+            background: #45a049;
+            transform: scale(0.98);
+        }
+        
+        .cart {
+            background: rgba(248, 249, 250, 0.8);
+            border-radius: 15px;
+            padding: 15px;
+            min-height: 120px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .cart-empty {
+            text-align: center;
+            color: #999;
+            padding: 30px 0;
+        }
+        
+        .cart-item {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            backdrop-filter: blur(5px);
+        }
+        
+        .cart-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .cart-item-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .cart-item-details {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .cart-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .qty-btn {
+            background: #f0f0f0;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .qty-btn:active {
+            background: #e0e0e0;
+            transform: scale(0.95);
+        }
+        
+        .qty-display {
+            font-weight: 600;
+            min-width: 30px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        
+        .remove-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .remove-btn:active {
+            background: #d32f2f;
+            transform: scale(0.95);
+        }
+        
+        .total {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.4rem;
+            font-weight: bold;
+            box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .payment-methods {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .payment-btn {
+            flex: 1;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 12px 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .payment-btn.active {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            transform: scale(1.02);
+        }
+        
+        .payment-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .complete-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .complete-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        
+        .complete-btn:not(:disabled):active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 15px rgba(76, 175, 80, 0.6);
+        }
+        
+        .clear-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .clear-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 10px rgba(244, 67, 54, 0.5);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            animation: slideDown 0.3s ease;
+            backdrop-filter: blur(10px);
+            font-weight: 500;
+            max-width: 90%;
+            text-align: center;
+        }
+        
+        .notification.error {
+            background: #f44336;
+        }
+        
+        .notification.info {
+            background: #2196F3;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        
+        .install-prompt {
+            background: rgba(33, 150, 243, 0.1);
+            border: 2px solid #2196F3;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #1976D2;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .install-btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            margin-top: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        @media (max-height: 700px) {
+            .app {
+                padding: 15px;
+            }
+            .section {
+                margin-bottom: 20px;
+            }
+        }
+        
+        /* Prevent text selection and context menu */
+        * {
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        input {
+            -webkit-user-select: text;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="header">
+            <h1>💰 Kassensystem</h1>
+            <div class="time" id="currentTime"></div>
+        </div>
+        
+        <div class="install-prompt" id="installPrompt" style="display: none;">
+            📱 <strong>Als App installieren!</strong><br>
+            <small>Teilen → "Zum Home-Bildschirm" für bessere Nutzung</small>
+            <br><button class="install-btn" onclick="hideInstallPrompt()">Verstanden</button>
+        </div>
+        
+        <!-- Produktsuche -->
+        <div class="section">
+            <h3>🔍 Produktsuche</h3>
+            <input type="text" class="barcode-input" id="barcodeInput" placeholder="Barcode: 1111-6666" autocomplete="off" inputmode="numeric">
+            <button class="add-btn" onclick="searchProduct()">
+                ➕ Hinzufügen
+            </button>
+        </div>
+        
+        <!-- Schnellzugriff -->
+        <div class="section">
+            <h3>⚡ Schnellzugriff</h3>
+            <div class="products-grid" id="quickProducts"></div>
+        </div>
+        
+        <!-- Warenkorb -->
+        <div class="section">
+            <h3>🛒 Warenkorb</h3>
+            <div class="cart" id="cartItems">
+                <div class="cart-empty">
+                    🛒<br>Warenkorb ist leer
+                </div>
+            </div>
+            
+            <div class="total" id="totalAmount">0,00 €</div>
+            
+            <!-- Zahlungsarten -->
+            <div class="payment-methods">
+                <button class="payment-btn active" data-method="Bargeld">
+                    💵<br><span>Bargeld</span>
+                </button>
+                <button class="payment-btn" data-method="Karte">
+                    💳<br><span>Karte</span>
+                </button>
+                <button class="payment-btn" data-method="Kontaktlos">
+                    📡<br><span>NFC</span>
+                </button>
+            </div>
+            
+            <button class="clear-btn" onclick="clearCart()">
+                🗑️ Warenkorb leeren
+            </button>
+            
+            <button class="complete-btn" onclick="completeSale()" id="completeSaleBtn" disabled>
+                ✅ Verkauf abschließen
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let cart = [];
+        let currentPaymentMethod = 'Bargeld';
+        let saleCounter = parseInt(localStorage.getItem('saleCounter') || '1');
+        
+        // Demo products
+        const products = [
+            {id: 1, name: 'Apfel', price: 0.50, barcode: '1111', emoji: '🍎'},
+            {id: 2, name: 'Banane', price: 0.30, barcode: '2222', emoji: '🍌'},
+            {id: 3, name: 'Brot', price: 2.50, barcode: '3333', emoji: '🍞'},
+            {id: 4, name: 'Milch', price: 1.20, barcode: '4444', emoji: '🥛'},
+            {id: 5, name: 'Cola', price: 1.50, barcode: '5555', emoji: '🥤'},
+            {id: 6, name: 'Chips', price: 1.99, barcode: '6666', emoji: '🍟'}
+        ];
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            displayQuickProducts();
+            updateTime();
+            setupEventListeners();
+            setInterval(updateTime, 1000);
+            loadAppState();
+            
+            // Show install prompt on iOS
+            if (isIOS() && !isInStandaloneMode()) {
+                setTimeout(() => {
+                    document.getElementById('installPrompt').style.display = 'block';
+                }, 3000);
+            }
+            
+            showNotification('📱 Kassensystem bereit!', 'info');
+        });
+
+        // Check if iOS
+        function isIOS() {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent);
+        }
+
+        // Check if in standalone mode
+        function isInStandaloneMode() {
+            return window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+        }
+
+        // Hide install prompt
+        function hideInstallPrompt() {
+            document.getElementById('installPrompt').style.display = 'none';
+            localStorage.setItem('installPromptHidden', 'true');
+        }
+
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString('de-DE');
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            const barcodeInput = document.getElementById('barcodeInput');
+            
+            barcodeInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    searchProduct();
+                }
+            });
+            
+            // Prevent zoom on focus
+            barcodeInput.addEventListener('focus', function() {
+                this.style.fontSize = '16px';
+            });
+            
+            document.querySelectorAll('.payment-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    selectPaymentMethod(this.dataset.method);
+                });
+            });
+        }
+
+        // Display quick products
+        function displayQuickProducts() {
+            const container = document.getElementById('quickProducts');
+            container.innerHTML = products.map(product => 
+                `<button class="product-btn" onclick="addToCart(${product.id})">
+                    <div>${product.emoji} ${product.name}</div>
+                    <div class="price">${formatPrice(product.price)}</div>
+                </button>`
+            ).join('');
+        }
+
+        // Search product
+        function searchProduct() {
+            const barcode = document.getElementById('barcodeInput').value.trim();
+            if (!barcode) return;
+            
+            const product = products.find(p => p.barcode === barcode);
+            if (product) {
+                addToCart(product.id);
+                document.getElementById('barcodeInput').value = '';
+                hapticFeedback('success');
+            } else {
+                showNotification('❌ Produkt nicht gefunden\nVersuchen Sie: 1111-6666', 'error');
+                hapticFeedback('error');
+            }
+        }
+
+        // Add to cart
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            const existingItem = cart.find(item => item.product_id === productId);
+            
+            if (existingItem) {
+                existingItem.quantity++;
+                existingItem.total_price = existingItem.quantity * existingItem.unit_price;
+            } else {
+                cart.push({
+                    product_id: productId,
+                    name: product.name,
+                    emoji: product.emoji,
+                    unit_price: product.price,
+                    quantity: 1,
+                    total_price: product.price
+                });
+            }
+            
+            updateCartDisplay();
+            showNotification(`${product.emoji} ${product.name} hinzugefügt`);
+            hapticFeedback('success');
+            saveAppState();
+        }
+
+        // Update cart display
+        function updateCartDisplay() {
+            const container = document.getElementById('cartItems');
+            
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="cart-empty">
+                        🛒<br>Warenkorb ist leer
+                    </div>
+                `;
+            } else {
+                container.innerHTML = cart.map((item, index) => `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.emoji} ${item.name}</div>
+                            <div class="cart-item-details">${formatPrice(item.unit_price)} × ${item.quantity} = ${formatPrice(item.total_price)}</div>
+                        </div>
+                        <div class="cart-controls">
+                            <button class="qty-btn" onclick="updateQuantity(${index}, -1)">−</button>
+                            <span class="qty-display">${item.quantity}</span>
+                            <button class="qty-btn" onclick="updateQuantity(${index}, 1)">+</button>
+                            <button class="remove-btn" onclick="removeFromCart(${index})">
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            updateCartTotal();
+        }
+
+        // Update quantity
+        function updateQuantity(index, change) {
+            const item = cart[index];
+            const newQuantity = item.quantity + change;
+            
+            if (newQuantity <= 0) {
+                removeFromCart(index);
+                return;
+            }
+            
+            item.quantity = newQuantity;
+            item.total_price = item.quantity * item.unit_price;
+            updateCartDisplay();
+            hapticFeedback('light');
+            saveAppState();
+        }
+
+        // Remove from cart
+        function removeFromCart(index) {
+            const itemName = cart[index].name;
+            cart.splice(index, 1);
+            updateCartDisplay();
+            showNotification(`🗑️ ${itemName} entfernt`);
+            hapticFeedback('light');
+            saveAppState();
+        }
+
+        // Clear cart
+        function clearCart() {
+            if (cart.length === 0) return;
+            cart = [];
+            updateCartDisplay();
+            showNotification('🗑️ Warenkorb geleert');
+            hapticFeedback('medium');
+            saveAppState();
+        }
+
+        // Update cart total
+        function updateCartTotal() {
+            const total = cart.reduce((sum, item) => sum + item.total_price, 0);
+            document.getElementById('totalAmount').textContent = formatPrice(total);
+            updateCompleteSaleButton();
+        }
+
+        // Select payment method
+        function selectPaymentMethod(method) {
+            currentPaymentMethod = method;
+            document.querySelectorAll('.payment-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-method="${method}"]`).classList.add('active');
+            updateCompleteSaleButton();
+            hapticFeedback('light');
+            saveAppState();
+        }
+
+        // Update complete sale button
+        function updateCompleteSaleButton() {
+            const btn = document.getElementById('completeSaleBtn');
+            btn.disabled = cart.length === 0;
+        }
+
+        // Complete sale
+        function completeSale() {
+            if (cart.length === 0) return;
+            
+            const total = cart.reduce((sum, item) => sum + item.total_price, 0);
+            const items = cart.length;
+            
+            showNotification(`✅ Verkauf #${saleCounter} erfolgreich!\n${items} Artikel • ${formatPrice(total)} • ${currentPaymentMethod}`, 'success');
+            hapticFeedback('success');
+            
+            // Save sale to history
+            saveSaleToHistory(total, items);
+            
+            // Increment sale counter
+            saleCounter++;
+            localStorage.setItem('saleCounter', saleCounter.toString());
+            
+            // Clear cart after delay
+            setTimeout(() => {
+                clearCart();
+                selectPaymentMethod('Bargeld');
+            }, 2500);
+        }
+
+        // Save sale to history
+        function saveSaleToHistory(total, items) {
+            const sales = JSON.parse(localStorage.getItem('salesHistory') || '[]');
+            sales.push({
+                id: saleCounter,
+                total: total,
+                items: items,
+                method: currentPaymentMethod,
+                timestamp: new Date().toISOString(),
+                cart: [...cart]
+            });
+            
+            // Keep only last 50 sales
+            if (sales.length > 50) {
+                sales.splice(0, sales.length - 50);
+            }
+            
+            localStorage.setItem('salesHistory', JSON.stringify(sales));
+        }
+
+        // Format price
+        function formatPrice(price) {
+            return new Intl.NumberFormat('de-DE', {
+                style: 'currency',
+                currency: 'EUR'
+            }).format(price);
+        }
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            // Remove existing notifications
+            document.querySelectorAll('.notification').forEach(n => n.remove());
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = message.replace(/\n/g, '<br>');
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideDown 0.3s ease reverse';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, type === 'success' ? 4000 : 3000);
+        }
+
+        // Haptic feedback
+        function hapticFeedback(type = 'light') {
+            if (navigator.vibrate) {
+                switch (type) {
+                    case 'light':
+                        navigator.vibrate(25);
+                        break;
+                    case 'medium':
+                        navigator.vibrate(50);
+                        break;
+                    case 'success':
+                        navigator.vibrate([50, 50, 100]);
+                        break;
+                    case 'error':
+                        navigator.vibrate([50, 50, 50, 50, 50]);
+                        break;
+                }
+            }
+        }
+        
+        // Save app state
+        function saveAppState() {
+            localStorage.setItem('kassensystem_cart', JSON.stringify(cart));
+            localStorage.setItem('kassensystem_payment', currentPaymentMethod);
+        }
+        
+        // Load app state
+        function loadAppState() {
+            const savedCart = localStorage.getItem('kassensystem_cart');
+            const savedPayment = localStorage.getItem('kassensystem_payment');
+            
+            if (savedCart) {
+                try {
+                    cart = JSON.parse(savedCart);
+                    updateCartDisplay();
+                } catch (e) {
+                    console.error('Error loading cart:', e);
+                }
+            }
+            
+            if (savedPayment) {
+                selectPaymentMethod(savedPayment);
+            }
+            
+            // Hide install prompt if previously hidden
+            if (localStorage.getItem('installPromptHidden')) {
+                document.getElementById('installPrompt').style.display = 'none';
+            }
+        }
+
+        // Auto-save on page unload
+        window.addEventListener('beforeunload', saveAppState);
+        
+        // Prevent context menu
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        
+        // Prevent double-tap zoom
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    </script>
+</body>
+</html>

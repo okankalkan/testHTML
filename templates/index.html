@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kassensystem</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <h1><i class="fas fa-cash-register"></i> Kassensystem</h1>
+            <div class="header-actions">
+                <span class="current-time" id="currentTime"></span>
+                <button class="btn btn-secondary" onclick="showReports()">
+                    <i class="fas fa-chart-bar"></i> Berichte
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Panel - Product Search & Cart -->
+            <div class="left-panel">
+                <!-- Product Search -->
+                <div class="search-section">
+                    <h3><i class="fas fa-search"></i> Produktsuche</h3>
+                    <div class="search-controls">
+                        <input type="text" id="barcodeInput" placeholder="Barcode scannen oder eingeben" class="barcode-input">
+                        <button onclick="searchProduct()" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Hinzufügen
+                        </button>
+                    </div>
+                    <div class="quick-products" id="quickProducts">
+                        <!-- Quick access products will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Shopping Cart -->
+                <div class="cart-section">
+                    <h3><i class="fas fa-shopping-cart"></i> Warenkorb</h3>
+                    <div class="cart-items" id="cartItems">
+                        <div class="empty-cart">
+                            <i class="fas fa-shopping-cart"></i>
+                            <p>Warenkorb ist leer</p>
+                        </div>
+                    </div>
+                    <div class="cart-total">
+                        <div class="total-line">
+                            <span>Gesamt:</span>
+                            <span class="total-amount" id="totalAmount">0,00 €</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Payment & Actions -->
+            <div class="right-panel">
+                <!-- Payment Section -->
+                <div class="payment-section">
+                    <h3><i class="fas fa-credit-card"></i> Zahlung</h3>
+                    <div class="payment-methods">
+                        <button class="payment-btn active" data-method="Bargeld">
+                            <i class="fas fa-money-bills"></i>
+                            <span>Bargeld</span>
+                        </button>
+                        <button class="payment-btn" data-method="Karte">
+                            <i class="fas fa-credit-card"></i>
+                            <span>Karte</span>
+                        </button>
+                        <button class="payment-btn" data-method="Kontaktlos">
+                            <i class="fas fa-wifi"></i>
+                            <span>Kontaktlos</span>
+                        </button>
+                    </div>
+                    
+                    <div class="cash-calculation" id="cashCalculation">
+                        <div class="input-group">
+                            <label>Erhaltener Betrag:</label>
+                            <input type="number" id="receivedAmount" placeholder="0,00" step="0.01" class="amount-input">
+                        </div>
+                        <div class="change-amount">
+                            <span>Rückgeld:</span>
+                            <span id="changeAmount">0,00 €</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn btn-danger btn-large" onclick="clearCart()">
+                        <i class="fas fa-trash"></i> Warenkorb leeren
+                    </button>
+                    <button class="btn btn-success btn-large" onclick="completeSale()" id="completeSaleBtn" disabled>
+                        <i class="fas fa-check"></i> Verkauf abschließen
+                    </button>
+                </div>
+
+                <!-- Recent Sales -->
+                <div class="recent-sales">
+                    <h3><i class="fas fa-history"></i> Letzte Verkäufe</h3>
+                    <div class="sales-list" id="recentSales">
+                        <!-- Recent sales will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Management Modal -->
+        <div class="modal" id="productModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Produktverwaltung</h3>
+                    <span class="close" onclick="closeModal('productModal')">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="tabs">
+                        <button class="tab-btn active" onclick="showTab('productList')">Produktliste</button>
+                        <button class="tab-btn" onclick="showTab('addProduct')">Neues Produkt</button>
+                    </div>
+                    
+                    <div class="tab-content" id="productList">
+                        <div class="product-table-container">
+                            <table class="product-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Preis</th>
+                                        <th>Kategorie</th>
+                                        <th>Lagerbestand</th>
+                                        <th>Aktionen</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productTableBody">
+                                    <!-- Products will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="addProduct" style="display: none;">
+                        <form id="productForm">
+                            <div class="form-group">
+                                <label>Produktname:</label>
+                                <input type="text" id="productName" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Preis (€):</label>
+                                <input type="number" id="productPrice" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Kategorie:</label>
+                                <input type="text" id="productCategory">
+                            </div>
+                            <div class="form-group">
+                                <label>Barcode:</label>
+                                <input type="text" id="productBarcode">
+                            </div>
+                            <div class="form-group">
+                                <label>Lagerbestand:</label>
+                                <input type="number" id="productStock" value="0">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Produkt hinzufügen</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Modal -->
+        <div class="modal" id="reportsModal">
+            <div class="modal-content large">
+                <div class="modal-header">
+                    <h3>Berichte & Statistiken</h3>
+                    <span class="close" onclick="closeModal('reportsModal')">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="date-selector">
+                        <label>Datum:</label>
+                        <input type="date" id="reportDate" onchange="loadDailyReport()">
+                    </div>
+                    <div id="reportContent">
+                        <!-- Report content will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="fab-container">
+        <button class="fab" onclick="showProductModal()">
+            <i class="fas fa-cog"></i>
+        </button>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
